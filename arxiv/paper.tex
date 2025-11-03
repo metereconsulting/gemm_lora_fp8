@@ -1,13 +1,12 @@
 \documentclass[11pt]{article}
 \usepackage{amsmath,amssymb,amsthm}
+\usepackage{amssymb}
 \usepackage{graphicx}
 \usepackage{float}
 \usepackage{hyperref}
 \usepackage{geometry}
 \usepackage{booktabs}
 \usepackage{subcaption}
-\usepackage{algorithm}
-\usepackage{algpseudocode}
 \usepackage{xcolor}
 \usepackage{listings}
 
@@ -57,18 +56,18 @@
 \maketitle
 
 \begin{abstract}
-Large matrix multiplication is a cornerstone of modern machine learning workloads, yet traditional approaches suffer from cubic computational complexity (O(n³)). We present Low-Rank GEMM, a novel approach that leverages low-rank matrix approximations to achieve sub-quadratic complexity while maintaining hardware-accelerated performance through FP8 precision and intelligent kernel selection.
+Large matrix multiplication is a cornerstone of modern machine learning workloads, yet traditional approaches suffer from cubic computational complexity ($\mathcal{O}(n^3)$). We present Low-Rank GEMM, a novel approach that leverages low-rank matrix approximations to achieve sub-quadratic complexity while maintaining hardware-accelerated performance through FP8 precision and intelligent kernel selection.
 
-Our implementation achieves up to 325,000 GFLOPS on matrices up to 20480×20480 on NVIDIA RTX 4090, providing 75\% memory savings and 7.2× speedup over PyTorch FP32 for large matrices. The system automatically adapts to hardware capabilities, selecting optimal decomposition methods (SVD, randomized SVD) and precision levels based on matrix characteristics and available accelerators.
+Our implementation achieves up to 325,000 GFLOPS on matrices up to $20480\times20480$ on NVIDIA RTX 4090, providing 75\% memory savings and $7.2\times$ speedup over PyTorch FP32 for large matrices. The system automatically adapts to hardware capabilities, selecting optimal decomposition methods (SVD, randomized SVD) and precision levels based on matrix characteristics and available accelerators.
 
-Comprehensive benchmarking on NVIDIA RTX 4090 demonstrates that Low-Rank GEMM becomes the fastest approach for matrices N≥10240, surpassing traditional cuBLAS implementations through memory bandwidth optimization rather than computational shortcuts.
+Comprehensive benchmarking on NVIDIA RTX 4090 demonstrates that Low-Rank GEMM becomes the fastest approach for matrices $$N\geq10240$$, surpassing traditional cuBLAS implementations through memory bandwidth optimization rather than computational shortcuts.
 \end{abstract}
 
 \section{Introduction}
 
-Matrix multiplication forms the computational backbone of modern deep learning systems, consuming significant portions of training and inference time. Traditional General Matrix Multiplication (GEMM) operations scale with O(n³) complexity, making them prohibitively expensive for large matrices encountered in transformer models, recommendation systems, and scientific computing applications.
+Matrix multiplication forms the computational backbone of modern deep learning systems, consuming significant portions of training and inference time. Traditional General Matrix Multiplication (GEMM) operations scale with $\mathcal{O}(n^3)$ complexity, making them prohibitively expensive for large matrices encountered in transformer models, recommendation systems, and scientific computing applications.
 
-Low-rank approximation offers a promising solution by representing matrices as products of smaller factors, reducing computational complexity to O(n²r) where r ≪ n is the rank. However, practical implementations often fail to achieve the theoretical benefits due to:
+Low-rank approximation offers a promising solution by representing matrices as products of smaller factors, reducing computational complexity to $\mathcal{O}(n^2r)$ where $r \ll n$ is the rank. However, practical implementations often fail to achieve the theoretical benefits due to:
 1. High constant factors in decomposition algorithms
 2. Memory overhead from storing factorized representations
 3. Lack of hardware acceleration for low-rank operations
@@ -82,7 +81,7 @@ We address these challenges through Low-Rank GEMM, a production-ready system tha
 
 Our key contributions include:
 1. A complete low-rank GEMM implementation with automatic optimization
-2. Comprehensive benchmarking up to matrix sizes of 20480×20480 on RTX 4090
+2. Comprehensive benchmarking up to matrix sizes of $20480\times20480$ on RTX 4090
 3. Hardware-aware kernel selection achieving up to 325K GFLOPS at scale
 4. Theoretical analysis of performance scaling and memory efficiency
 
@@ -108,20 +107,20 @@ Approximate computing techniques have been applied to various ML workloads. Zhu 
 
 \subsection{Low-Rank Matrix Approximation}
 
-Given matrices A ∈ ℝ^{m×k} and B ∈ ℝ^{k×n}, we seek to compute C = AB. Using low-rank approximation, we decompose A ≈ U_A Σ_A V_A^T and B ≈ U_B Σ_B V_B^T, where U, Σ, V are the SVD factors and we retain only the top r singular values/vectors.
+Given matrices $A \in \mathbb{R}^{m\times k}$ and $B \in \mathbb{R}^{k\times n}$, we seek to compute C = AB. Using low-rank approximation, we decompose $A \approx U_A \Sigma_A V_A^T$ and $B \approx U_B \Sigma_B V_B^T$, where $U, \Sigma, V$ are the SVD factors and we retain only the top r singular values/vectors.
 
 The approximate multiplication becomes:
 \begin{equation}
-C ≈ (U_A Σ_A V_A^T)(U_B Σ_B V_B^T) = U_A (Σ_A V_A^T U_B) Σ_B V_B^T
+C \approx (U_A \Sigma_A V_A^T)(U_B \Sigma_B V_B^T) = U_A (\Sigma_A V_A^T U_B) \Sigma_B V_B^T
 \end{equation}
 
-This reduces complexity from O(mkn) to O((m+k+n)r² + (m+n)r) for the approximation plus O(mnr) for the final multiplication.
+This reduces complexity from $\mathcal{O}(mkn)$ to $\mathcal{O}((m+k+n)r^2 + (m+n)r)$ for the approximation plus $\mathcal{O}(mnr)$ for the final multiplication.
 
 \subsection{Adaptive Rank Selection}
 
 We implement multiple strategies for determining the optimal rank r:
 
-1. **Fixed fraction**: r = α × min(m, n), where α ∈ [0.01, 0.1]
+1. **Fixed fraction**: $r = \alpha \times \min(m, n)$, where $\alpha \in [0.01, 0.1]$
 2. **Energy-based**: Retain singular values accounting for 99\% of total energy
 3. **Error-constrained**: Iteratively increase r until approximation error falls below threshold
 4. **Hardware-aware**: Adjust rank based on available memory and compute capabilities
@@ -130,7 +129,7 @@ We implement multiple strategies for determining the optimal rank r:
 
 \subsubsection{FP8 Precision Support}
 
-FP8 (8-bit floating point) provides 2× memory bandwidth reduction compared to FP16. We implement intelligent precision handling:
+FP8 (8-bit floating point) provides $2\times$ memory bandwidth reduction compared to FP16. We implement intelligent precision handling:
 
 - **Automatic fallback**: FP16/FP32 when FP8 unavailable
 - **Scaling compensation**: Proper handling of reduced dynamic range
@@ -187,7 +186,7 @@ All experiments were conducted on an NVIDIA RTX 4090 GPU with:
 
 \subsection{Benchmark Methodology}
 
-We evaluated performance across matrix sizes from 1024×1024 to 20480×20480, using a geometric progression (multiples of √2) to ensure comprehensive coverage. Each configuration was tested with:
+We evaluated performance across matrix sizes from $1024\times1024$ to $20480\times20480$, using a geometric progression (multiples of $\sqrt{2}$) to ensure comprehensive coverage. Each configuration was tested with:
 
 - 5 warmup iterations
 - 5 measurement iterations
@@ -211,15 +210,15 @@ We compared against:
 \begin{figure}[H]
 \centering
 \includegraphics[width=\textwidth]{rtx4090_large_scale_performance.png}
-\caption{RTX 4090 Large Scale Performance: Time-to-solution, throughput, error, and speedup vs matrix size (log₂ scale). LowRank Auto achieves up to 325K GFLOPS at N=20480, becoming the fastest method for N≥10240.}
+\caption{RTX 4090 Large Scale Performance: Time-to-solution, throughput, error, and speedup vs matrix size ($\log_2$ scale). LowRank Auto achieves up to 325K GFLOPS at N=20480, becoming the fastest method for $N\geq10240$.}
 \label{fig:performance_scaling}
 \end{figure}
 
-Figure~\ref{fig:performance_scaling} shows the scaling behavior across matrix sizes from 1024×1024 to 20480×20480 on NVIDIA RTX 4090. Key observations:
+Figure~\ref{fig:performance_scaling} shows the scaling behavior across matrix sizes from $1024\times1024$ to $20480\times20480$ on NVIDIA RTX 4090. Key observations:
 
-- **Small matrices (N≤4096)**: PyTorch FP32 and TorchCompile FP16 dominate due to kernel launch overhead
+- **Small matrices ($N\leq4096$)**: PyTorch FP32 and TorchCompile FP16 dominate due to kernel launch overhead
 - **Medium matrices (4096<N<10240)**: TorchCompile FP16 provides best performance through TensorCore acceleration
-- **Large matrices (N≥10240)**: LowRank Auto becomes the fastest method, achieving 325K GFLOPS at N=20480
+- **Large matrices ($N\geq10240$)**: LowRank Auto becomes the fastest method, achieving 325K GFLOPS at N=20480
 
 The crossover point occurs around N=10000, where memory bandwidth limitations make low-rank approximation more efficient than direct computation, despite the additional factorization overhead.
 
@@ -242,39 +241,16 @@ LowRank Auto & 127K & 127K & 127K & 127K & 325K \\
 \end{tabular}
 \end{table}
 
-Table~\ref{tab:throughput} demonstrates the remarkable scaling of LowRank Auto, achieving 325K GFLOPS at N=20480 - a 7.2× improvement over PyTorch FP32 and 2.9× improvement over cuBLAS optimized methods at maximum scale.
+Table~\ref{tab:throughput} demonstrates the remarkable scaling of LowRank Auto, achieving 325K GFLOPS at N=20480 - a $7.2\times$ improvement over PyTorch FP32 and $2.9\times$ improvement over cuBLAS optimized methods at maximum scale.
 
 \subsection{Memory Efficiency}
 
-\begin{figure}[H]
-\centering
-\begin{subfigure}{0.48\textwidth}
-\includegraphics[width=\textwidth]{memory_usage.png}
-\caption{Memory usage breakdown}
-\label{fig:memory_usage}
-\end{subfigure}
-\hfill
-\begin{subfigure}{0.48\textwidth}
-\includegraphics[width=\textwidth]{memory_efficiency.png}
-\caption{Memory efficiency (GFLOPS/GB)}
-\label{fig:memory_efficiency}
-\end{subfigure}
-\caption{Memory efficiency analysis showing 75\% reduction with LowRank methods}
-\end{figure}
-
-LowRank methods achieve 75\% memory reduction through factorized storage. For a 20480×20480 matrix:
+LowRank methods achieve 75\% memory reduction through factorized storage. For a $20480\times20480$ matrix:
 - **Direct methods**: 5GB per matrix (15GB total for GEMM)
 - **LowRank methods**: 1.25GB per matrix (3.75GB total)
-- **Effective expansion**: 3.25× larger models fit in same memory
+- **Effective expansion**: $3.25\times$ larger models fit in same memory
 
 \subsection{Error Analysis}
-
-\begin{figure}[H]
-\centering
-\includegraphics[width=0.8\textwidth]{error_bounds.png}
-\caption{Approximation error vs matrix size. LowRank methods stay within FP8 precision bounds.}
-\label{fig:error_bounds}
-\end{figure}
 
 All low-rank methods maintain approximation errors below 1\%, well within practical ML requirements. The error remains consistent across matrix sizes, demonstrating robust approximation quality.
 
@@ -309,15 +285,15 @@ LowRank Auto achieves the highest performance (127K GFLOPS) while using only 15\
 
 3. **Scaling Behavior**: LowRank methods maintain constant performance scaling, unlike traditional methods that degrade with size.
 
-4. **Precision-Performance Trade-off**: Sub-1\% error enables 3× performance improvement with acceptable quality loss for ML applications.
+4. **Precision-Performance Trade-off**: Sub-1\% error enables $3\times$ performance improvement with acceptable quality loss for ML applications.
 
 \subsection{Practical Implications}
 
-**Training Large Models**: LowRank GEMM enables training of larger transformer models by reducing memory requirements by 75\%, allowing 3.25× larger batch sizes or model sizes.
+**Training Large Models**: LowRank GEMM enables training of larger transformer models by reducing memory requirements by 75\%, allowing $3.25\times$ larger batch sizes or model sizes.
 
 **Inference Optimization**: The memory efficiency enables deployment of larger models on edge devices with limited memory.
 
-**Algorithm Selection**: The crossover point at N≈10000 provides a clear guideline for when to use low-rank vs direct methods.
+**Algorithm Selection**: The crossover point at $N\approx10000$ provides a clear guideline for when to use low-rank vs direct methods.
 
 \subsection{Limitations and Future Work}
 
@@ -334,9 +310,9 @@ LowRank Auto achieves the highest performance (127K GFLOPS) while using only 15\
 
 \section{Conclusion}
 
-We presented Low-Rank GEMM, a high-performance matrix multiplication system that leverages low-rank approximations with hardware acceleration. Our implementation achieves up to 325K GFLOPS on matrices up to 20480×20480 on NVIDIA RTX 4090, providing 75\% memory savings and 7.2× speedup over PyTorch FP32 for large matrices.
+We presented Low-Rank GEMM, a high-performance matrix multiplication system that leverages low-rank approximations with hardware acceleration. Our implementation achieves up to 325K GFLOPS on matrices up to $20480\times20480$ on NVIDIA RTX 4090, providing 75\% memory savings and $7.2\times$ speedup over PyTorch FP32 for large matrices.
 
-The system automatically adapts to hardware capabilities and matrix characteristics, selecting optimal decomposition methods and precision levels. Comprehensive benchmarking demonstrates that LowRank GEMM becomes the fastest approach for matrices N≥10240, surpassing traditional cuBLAS implementations through memory bandwidth optimization rather than computational shortcuts.
+The system automatically adapts to hardware capabilities and matrix characteristics, selecting optimal decomposition methods and precision levels. Comprehensive benchmarking demonstrates that LowRank GEMM becomes the fastest approach for matrices $$N\geq10240$$, surpassing traditional cuBLAS implementations through memory bandwidth optimization rather than computational shortcuts.
 
 Low-Rank GEMM represents a significant advancement in practical large-scale matrix computation, enabling more efficient training and deployment of modern deep learning models while maintaining sub-1\% approximation accuracy.
 

@@ -34,37 +34,38 @@ def main():
 
     args = parser.parse_args()
 
-    print("🚀 Low-Rank GEMM Performance Benchmark Suite")
-    print("=" * 60)
+    print("Low-Rank GEMM Performance Benchmark Suite")
 
     # Create benchmark suite
     benchmark = LowRankGEMMBenchmarkSuite()
 
     # Determine test sizes
     if args.quick:
-        sizes = [256, 512, 1024]
-        print("⚡ Running quick benchmark with small matrices")
+        sizes = [1024, 2048, 4096]
+        if args.verbose:
+            print("Running quick benchmark with small matrices")
     elif args.sizes:
         sizes = args.sizes
-        print(f"📏 Testing specific sizes: {sizes}")
+        if args.verbose:
+            print("Testing specific sizes: {}".format(sizes))
     else:
         max_size = args.max_size or benchmark.memory_manager.get_max_matrix_size()
         # Generate size progression up to memory limit
         sizes = []
-        current = 256
+        current = 1024
         while current <= max_size:
             sizes.append(current)
-            if current < 1024:
+            if current < 4096:
                 current *= 2  # Double for small sizes
             else:
                 current = int(current * 1.5)  # 1.5x for larger sizes
         sizes = list(set(sizes))  # Remove duplicates
         sizes.sort()
-        print(f"🔬 Testing sizes up to GPU memory limit: {sizes}")
+        if args.verbose:
+            print("Testing sizes up to GPU memory limit: {}".format(sizes))
 
     # Run benchmark
-    print(f"\n🏃 Running benchmark with {len(sizes)} matrix sizes...")
-    results_df = benchmark.run_scaling_benchmark(sizes=sizes)
+    results_df = benchmark.run_scaling_benchmark(sizes=sizes, verbose=args.verbose)
 
     if results_df.empty:
         print("❌ Benchmark failed - no results generated")

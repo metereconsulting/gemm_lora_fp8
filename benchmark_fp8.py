@@ -199,11 +199,11 @@ class LowRankGEMMBenchmarkSuite:
         # Benchmark results
         self.results = {}
 
-        print("🧪 Low-Rank GEMM Benchmark Suite Initialized")
-        print("   Comparing against: Optimized cuBLAS FP8, TorchCompile FP16, PyTorch FP32")
-        print(f"   GPU Memory: {self.memory_manager.memory_info['total'] / 1e9:.1f} GB total")
-        print(f"   Available: {self.memory_manager.memory_info['free'] / 1e9:.1f} GB free")
-        print(f"   Max Matrix Size: {self.memory_manager.get_max_matrix_size()}")
+        # Optional verbose initialization (can be disabled)
+        if torch.cuda.is_available():
+            device_name = torch.cuda.get_device_name()
+            memory_gb = self.memory_manager.memory_info['total'] / 1e9
+            print(f"Benchmark Suite initialized on {device_name} ({memory_gb:.1f} GB GPU)")
 
     @contextmanager
     def memory_context(self):
@@ -265,7 +265,7 @@ class LowRankGEMMBenchmarkSuite:
             'frobenius_relative_error': torch.norm(relative_error, p='fro').item(),
         }
 
-    def run_scaling_benchmark(self, max_size: Optional[int] = None, sizes: Optional[List[int]] = None) -> pd.DataFrame:
+    def run_scaling_benchmark(self, max_size: Optional[int] = None, sizes: Optional[List[int]] = None, verbose: bool = False) -> pd.DataFrame:
         """Run scaling benchmark with different matrix sizes."""
         if max_size is None:
             max_size = self.memory_manager.get_max_matrix_size()
@@ -281,12 +281,14 @@ class LowRankGEMMBenchmarkSuite:
             sizes = list(set(sizes))  # Remove duplicates
             sizes.sort()
 
-        print(f"🔬 Running scaling benchmark with sizes: {sizes}")
+        if verbose:
+            print(f"Running benchmark with {len(sizes)} matrix sizes...")
 
         results = []
 
         for size in sizes:
-            print(f"   Testing size {size}x{size}...")
+            if verbose:
+                print(f"Testing {size}x{size}...")
             try:
                 # Create test matrices
                 a = torch.randn(size, size, device=self.device, dtype=torch.float32)
@@ -447,18 +449,19 @@ class LowRankGEMMBenchmarkSuite:
                 print(f"  {method:<15s}: {avg_time:6.2f} ms avg, "
                       f"{avg_throughput:6.1f} GFLOPS avg")
 
-    def run_full_benchmark(self, save_plots: bool = True) -> pd.DataFrame:
+    def run_full_benchmark(self, save_plots: bool = True, verbose: bool = False) -> pd.DataFrame:
         """Run complete benchmark suite."""
-        print("🚀 Starting FP8 GEMM Benchmark Suite")
-        print("=" * 50)
+        if verbose:
+            print("Starting Low-Rank GEMM Benchmark Suite")
 
         # Run scaling benchmark
-        results_df = self.run_scaling_benchmark()
+        results_df = self.run_scaling_benchmark(verbose=verbose)
 
         if save_plots and not results_df.empty:
             self.create_performance_plots(results_df)
 
-        print("✅ Benchmark completed!")
+        if verbose:
+            print("Benchmark completed successfully")
         return results_df
 
 
@@ -472,13 +475,18 @@ def main():
     torch.backends.cuda.matmul.allow_tf32 = True
     torch.backends.cudnn.allow_tf32 = True
 
+    # Parse command line arguments for verbose mode
+    import sys
+    verbose = '--verbose' in sys.argv
+
     # Create and run benchmark
     benchmark = LowRankGEMMBenchmarkSuite()
-    results = benchmark.run_full_benchmark()
+    results = benchmark.run_full_benchmark(verbose=verbose)
 
     # Save results to CSV
     results.to_csv('fp8_benchmark_results.csv', index=False)
-    print("💾 Results saved to fp8_benchmark_results.csv")
+    if verbose:
+        print("Results saved to fp8_benchmark_results.csv")
 
     return results
 

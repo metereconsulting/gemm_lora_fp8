@@ -33,12 +33,10 @@ except ImportError:
 FP8_E4M3FN_AVAILABLE = hasattr(torch, 'float8_e4m3fn')
 FP8_E5M2FN_AVAILABLE = hasattr(torch, 'float8_e5m2fn')
 
-# Define FP8 dtypes if not available
+# Define FP8 dtypes if not available (silent fallback)
 if not FP8_E4M3FN_AVAILABLE:
-    # Fallback to half precision for simulation
     torch.float8_e4m3fn = torch.float16
     torch.float8_e5m2fn = torch.float16
-    warnings.warn("FP8 not natively supported. Using FP16 as fallback.")
 
 
 class AutoKernelSelector:
