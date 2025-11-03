@@ -2,9 +2,9 @@
 \providecommand\hyper@newdestlabel[2]{}
 \providecommand\HyField@AuxAddToFields[1]{}
 \providecommand\HyField@AuxAddToCoFields[2]{}
+\@writefile{toc}{\contentsline {section}{\numberline {1}Introduction}{1}{section.1}\protected@file@percent }
 \citation{eckart1936approximation}
 \citation{halko2011finding}
-\@writefile{toc}{\contentsline {section}{\numberline {1}Introduction}{1}{section.1}\protected@file@percent }
 \citation{wang2020hat}
 \citation{nvidia2017tensor}
 \citation{micikevicius2022fp8}
@@ -18,38 +18,48 @@
 \@writefile{toc}{\contentsline {subsection}{\numberline {2.3}Approximate Computing in ML}{2}{subsection.2.3}\protected@file@percent }
 \@writefile{toc}{\contentsline {section}{\numberline {3}Methodology}{2}{section.3}\protected@file@percent }
 \@writefile{toc}{\contentsline {subsection}{\numberline {3.1}Low-Rank Matrix Approximation}{2}{subsection.3.1}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {3.2}Adaptive Rank Selection}{2}{subsection.3.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.2}Adaptive Rank Selection}{3}{subsection.3.2}\protected@file@percent }
 \@writefile{toc}{\contentsline {subsection}{\numberline {3.3}Hardware Acceleration}{3}{subsection.3.3}\protected@file@percent }
 \@writefile{toc}{\contentsline {subsubsection}{\numberline {3.3.1}FP8 Precision Support}{3}{subsubsection.3.3.1}\protected@file@percent }
 \@writefile{toc}{\contentsline {subsubsection}{\numberline {3.3.2}TensorCore Optimization}{3}{subsubsection.3.3.2}\protected@file@percent }
 \@writefile{toc}{\contentsline {subsection}{\numberline {3.4}Implementation Architecture}{3}{subsection.3.4}\protected@file@percent }
 \@writefile{lol}{\contentsline {lstlisting}{\numberline {1}{\ignorespaces Core Low-Rank GEMM Implementation}}{3}{lstlisting.1}\protected@file@percent }
-\@writefile{toc}{\contentsline {section}{\numberline {4}Experimental Setup}{3}{section.4}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {4.1}Hardware Configuration}{3}{subsection.4.1}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {4.2}Software Stack}{3}{subsection.4.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {4}Experimental Setup}{4}{section.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.1}Hardware Configuration}{4}{subsection.4.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.2}Software Stack}{4}{subsection.4.2}\protected@file@percent }
 \@writefile{toc}{\contentsline {subsection}{\numberline {4.3}Benchmark Methodology}{4}{subsection.4.3}\protected@file@percent }
 \@writefile{toc}{\contentsline {subsection}{\numberline {4.4}Comparison Methods}{4}{subsection.4.4}\protected@file@percent }
-\@writefile{toc}{\contentsline {section}{\numberline {5}Results}{4}{section.5}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {5.1}Performance Scaling}{4}{subsection.5.1}\protected@file@percent }
-\@writefile{lof}{\contentsline {figure}{\numberline {1}{\ignorespaces RTX 4090 Large Scale Performance: Time-to-solution, throughput, error, and speedup vs matrix size ($\log _2$ scale). LowRank Auto achieves up to 325K GFLOPS at N=20480, becoming the fastest method for $N\geq 10240$.}}{4}{figure.caption.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {5}Results}{5}{section.5}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.1}Performance Scaling}{5}{subsection.5.1}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {1}{\ignorespaces RTX 4090 Large Scale Performance: Time-to-solution, throughput, error, and speedup vs matrix size ($\log _2$ scale). LowRank Auto achieves up to 325K GFLOPS at N=20480, becoming the fastest method for $N\geq 10240$.}}{5}{figure.caption.2}\protected@file@percent }
 \providecommand*\caption@xref[2]{\@setref\relax\@undefined{#1}}
-\newlabel{fig:performance_scaling}{{1}{4}{RTX 4090 Large Scale Performance: Time-to-solution, throughput, error, and speedup vs matrix size ($\log _2$ scale). LowRank Auto achieves up to 325K GFLOPS at N=20480, becoming the fastest method for $N\geq 10240$}{figure.caption.2}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {5.2}Throughput Analysis}{5}{subsection.5.2}\protected@file@percent }
-\@writefile{lot}{\contentsline {table}{\numberline {1}{\ignorespaces Peak GFLOPS achieved by each method on RTX 4090}}{5}{table.caption.3}\protected@file@percent }
-\newlabel{tab:throughput}{{1}{5}{Peak GFLOPS achieved by each method on RTX 4090}{table.caption.3}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {5.3}Memory Efficiency}{5}{subsection.5.3}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {5.4}Error Analysis}{5}{subsection.5.4}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {5.5}Hardware Utilization}{5}{subsection.5.5}\protected@file@percent }
-\@writefile{lot}{\contentsline {table}{\numberline {2}{\ignorespaces GPU utilization at maximum scale (N=20480)}}{5}{table.caption.4}\protected@file@percent }
-\newlabel{tab:gpu_utilization}{{2}{5}{GPU utilization at maximum scale (N=20480)}{table.caption.4}{}}
+\newlabel{fig:performance_scaling}{{1}{5}{RTX 4090 Large Scale Performance: Time-to-solution, throughput, error, and speedup vs matrix size ($\log _2$ scale). LowRank Auto achieves up to 325K GFLOPS at N=20480, becoming the fastest method for $N\geq 10240$}{figure.caption.2}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.2}Throughput Analysis}{6}{subsection.5.2}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {1}{\ignorespaces Peak TFLOPS achieved by each method on RTX 4090}}{6}{table.caption.3}\protected@file@percent }
+\newlabel{tab:throughput}{{1}{6}{Peak TFLOPS achieved by each method on RTX 4090}{table.caption.3}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.3}Memory Efficiency}{6}{subsection.5.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.4}Error Analysis}{6}{subsection.5.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {5.4.1}Numerical Stability and Approximation Quality}{6}{subsubsection.5.4.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {5.4.2}Error Sources and Characteristics}{6}{subsubsection.5.4.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {5.4.3}Acceptability for Machine Learning Applications}{7}{subsubsection.5.4.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{\textbf  {Gradient Flow Preservation}}{7}{section*.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{\textbf  {Statistical Resilience}}{7}{section*.5}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{\textbf  {Error Consistency}}{7}{section*.6}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{\textbf  {Empirical Validation}}{7}{section*.7}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {5.4.4}\textbf  {Error Bounds and Theoretical Guarantees}}{7}{subsubsection.5.4.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.5}Hardware Utilization}{7}{subsection.5.5}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {2}{\ignorespaces GPU utilization at maximum scale (N=20480)}}{8}{table.caption.8}\protected@file@percent }
+\newlabel{tab:gpu_utilization}{{2}{8}{GPU utilization at maximum scale (N=20480)}{table.caption.8}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {6}Discussion}{8}{section.6}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {6.1}Key Insights}{8}{subsection.6.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {6.2}Practical Implications}{9}{subsection.6.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {6.3}Limitations and Future Work}{10}{subsection.6.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {6.3.1}Current Limitations}{10}{subsubsection.6.3.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {6.3.2}Future Directions}{10}{subsubsection.6.3.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {7}Conclusion}{10}{section.7}\protected@file@percent }
 \bibstyle{plain}
 \bibdata{references}
 \bibcite{chetlur2014cudnn}{1}
-\@writefile{toc}{\contentsline {section}{\numberline {6}Discussion}{6}{section.6}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {6.1}Key Insights}{6}{subsection.6.1}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {6.2}Practical Implications}{6}{subsection.6.2}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {6.3}Limitations and Future Work}{6}{subsection.6.3}\protected@file@percent }
-\@writefile{toc}{\contentsline {section}{\numberline {7}Conclusion}{6}{section.7}\protected@file@percent }
 \bibcite{nvidia2017tensor}{2}
 \bibcite{nvidia2018cublas}{3}
 \bibcite{eckart1936approximation}{4}
@@ -58,4 +68,4 @@
 \bibcite{micikevicius2022fp8}{7}
 \bibcite{wang2020hat}{8}
 \bibcite{zhu2018mixed}{9}
-\gdef \@abspage@last{7}
+\gdef \@abspage@last{11}
