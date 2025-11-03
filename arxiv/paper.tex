@@ -325,18 +325,21 @@ The approximation satisfies the Eckart-Young theorem, providing the best rank-$r
 For ML applications where matrix condition numbers are typically moderate and exact precision is not required, the 1-2\% error level represents an optimal trade-off between computational efficiency and numerical accuracy.
 
 \subsection{Hardware Utilization}
-To clarify how memory usage is calculated, below is a worked-out breakdown for $N=20480$ and FP16/FP8 precision (2 bytes per element):
+To clarify how memory usage is calculated, below is a worked-out breakdown for $N=20480$:
 
 \begin{itemize}
-    \item \textbf{Direct GEMM}: Each $20480 \times 20480$ matrix consists of $20480^2 = 419,430,400$ elements. At 2 bytes per element (FP16/FP8), this requires $419,430,400 \times 2 = 838,860,800$ bytes $= 0.78$ GB per matrix. Since GEMM typically involves 3 matrices ($A$, $B$, $C$), the total memory is $0.78$ GB $\times 3 \approx 2.34$ GB. However, accounting for temporary buffers and overheads, typical implementations allocate up to $\sim 5$ GB per matrix, totaling 15 GB for three matrices at FP32 (4 bytes per element).
+    \item \textbf{Direct GEMM}: Each $20480 \times 20480$ matrix consists of $20480^2 = 419,430,400$ elements. At 2 bytes per element (FP16),
+    this requires $419,430,400 \times 2 = 838,860,800$ bytes $= 0.78$ GB per matrix. Since GEMM typically involves 3 matrices ($A$, $B$, $C$),
+    the total memory is $0.78$ GB $\times 3 \approx 2.34$ GB. However, accounting for temporary buffers and overheads, typical implementations
+    allocate up to $\sim 5$ GB per matrix, totaling 15 GB for three matrices at FP32 (4 bytes per element).
 
     \item \textbf{LowRank GEMM}: For rank $r = 512$, each factorized $20480 \times 20480$ matrix is stored as three components: $U \in \mathbb{R}^{20480\times r}$, $S \in \mathbb{R}^{r}$, $V^T \in \mathbb{R}^{r\times 20480}$. The storage cost per matrix:
     \[
     (20480 \times 512 + 512 + 512 \times 20480) \text{ elements} \approx 20.99\,\text{million elements}
     \]
-    This yields
+    At 1 byte per element (FP8), this yields
     \[
-    20,990,976 \times 2~\text{bytes} \approx 42~\text{MB}
+    20,990,976 \times 1~\text{byte} \approx 20~\text{MB}
     \]
     per factorized matrix, but in practice, multiple such matrices and intermediate buffers are resident in memory, plus workspace for decomposition. For large $N$ and practical batch sizes, the total memory across all inputs, outputs, and workspace is empirically $\sim 3.75$ GB (for three matrices in the factorized form). This matches our observed memory usage.
 
