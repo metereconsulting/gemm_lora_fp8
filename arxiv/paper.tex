@@ -667,20 +667,11 @@ Achieving $325$ TFLOPS on RTX 4090---nearly half of the bandwidth-limited peak--
     \end{itemize}
 \end{enumerate}
 
-\paragraph{Summary}
-
-\begin{tcolorbox}[colback=green!5!white, colframe=green!75!black, sharp corners=south]
-\textbf{In summary:} For bandwidth-limited matrix multiplication on modern GPUs, the \emph{memory bandwidth} sets a hard ceiling on achievable FLOPS; the measured throughput of $325$ TFLOPS is within $1.5\times$ of this ceiling. The remaining gap is explained and expected from necessary overheads and architectural realities. 
-\textbf{No significant further speedup is possible} until memory bandwidth, not arithmetic units, is increased in next-generation hardware.
-\end{tcolorbox}
-
-
 \subsection{Extrapolating Performance for NVIDIA H200 and B200 GPUs}
 
-While our results are based on the NVIDIA RTX 4090, and lacking access to the latest NVIDIA GPUs, we can extrapolate 
-performance to next-generation accelerators by using the architectural improvements featured in NVIDIA's Hopper H200 and Blackwell B200 GPUs.
-To predict the scalability of LowRank GEMM on next-generation accelerators, we extrapolate performance based on 
-the architectural improvements featured in NVIDIA's Hopper H200 and Blackwell B200 GPUs.
+While our results are based on the NVIDIA RTX 4090, we can extrapolate performance to next-generation accelerators
+by scaling with their improved memory bandwidth and capacity. For Hopper H200 and Blackwell B200 GPUs, we predict
+LowRank GEMM scalability using the architectural improvements in these platforms.
 
 \paragraph{Hardware Specifications:}
 \begin{itemize}
@@ -729,43 +720,6 @@ $^*$ At large matrix sizes, practical throughput is set by bandwidth efficiency,
 
 
 
-
-
-\begin{itemize}
-    \item \textbf{Memory Bandwidth Bottleneck}: For very large matrices, the primary performance limitation shifts from raw computation 
-    (FLOPs) to memory access speed. As matrix sizes grow, the cost of moving data between memory and compute units outweighs 
-    the arithmetic. Our LowRank GEMM implementation dramatically reduces the volume of memory traffic—by approximately 75\%—compared 
-    to traditional GEMM, by transmitting and computing on compact factorized representations instead of the full matrices. This reduction is 
-    crucial on modern GPUs and accelerators, where memory bandwidth is often the bottleneck for large-scale matrix operations, allowing higher effective 
-    throughput and unlocking capacity otherwise wasted on data transfer.
-    
-    \item \textbf{Hardware-Aware Optimization}: The system's auto-kernel selector adaptively chooses between direct and low-rank GEMM depending on the 
-    problem size, precision requirements, and available hardware features (e.g., FP8, FP16, TensorCores). For small to moderate sizes, 
-    direct (cuBLAS-like) kernels remain optimal, but as $N$ grows and memory pressure increases, the low-rank kernel is automatically selected, 
-    consistently outperforming traditional approaches. This intelligent selection ensures users always get near-optimal speed, as evidenced by our 
-    experiments where crossover benefits appear at $N \approx 10,\!000$. The selector's decisions account for GPU memory capacity, bandwidth, and 
-    support for reduced precision formats.
-    
-    \item \textbf{Scaling Behavior}: A key insight from our benchmarks is that LowRank GEMM achieves nearly flat performance scaling for increasing 
-    matrix sizes, in contrast to the superlinear growth in compute time observed with conventional methods. Once matrices become large enough 
-    for memory to dominate, LowRank's cost is dictated primarily by the reduced-rank dimensions ($r \ll N$), yielding a performance curve 
-    that remains close to the hardware's peak throughput, even as $N$ increases. This scaling property is critical for ML systems where matrices 
-    routinely exceed $10^4$ in dimension, enabling efficient computation without slowdowns.
-    
-    \item \textbf{Precision-Performance Trade-off}: Low-rank approximation naturally introduces a small amount of error into the result. 
-    However, by tuning the retained rank $r$ and leveraging robust SVD or randomized decompositions, we hold the approximation error 
-    below 1\% in the Frobenius norm. For ML applications, experiments and prior work confirm such error levels have negligible or even benign 
-    impact—often serving as implicit regularization. In exchange, we achieve up to $3\times$ improvement in compute throughput (GFLOPS) and 
-    proportional reductions in memory footprint, representing an attractive and practical trade-off for real-world training and inference.
-    
-    \item \textbf{Generalization to Real-World Workloads}: The benefits of LowRank GEMM extend beyond synthetic matrices or benchmarks, 
-    applying to a variety of real ML workloads, including transformer attention, MLP layers, and large-scale recommendation models. 
-    Our approach is compatible with both static and dynamic computational graphs, and automatically adapts when running on newer 
-    architectures supporting FP8 or future precision formats. This generality makes the method broadly usable across many domains
-     where large matrix operations are a core bottleneck.
-\end{itemize}
-
-
 \subsection{Practical Implications}
 \begin{itemize}
     \item \textbf{Training Large Models}: LowRank GEMM dramatically reduces memory requirements—by up to 75\%—which directly translates 
@@ -805,37 +759,27 @@ $^*$ At large matrix sizes, practical throughput is set by bandwidth efficiency,
 
 \subsubsection{Current Limitations}
 \begin{itemize}
-    \item Approximation introduces small errors (though $<1\text{\%}$)
-    \item Requires offline decomposition for optimal performance
-    \item Memory overhead from storing factorized representations
-\end{itemize}
-
-\subsubsection{Future Directions}
-\begin{itemize}
-    \item Online adaptive rank selection during training
-    \item Integration with automatic differentiation
-    \item Hardware-specific optimizations for different GPU architectures
-    \item Extension to sparse and structured matrices
+    \item Approximation introduces small errors (though typically $<1\text{\%}$)
+    \item For best performance, the low-rank factorization (decomposition) of matrices is ideally computed in advance---
+    this is referred to as \textit{offline decomposition} (rather than being performed on-the-fly during every multiplication), 
+    which may not always be possible for dynamic or streaming workloads. This is a fundamental limitation of the hardware.
+    \item Memory overhead from storing the factorized (low-rank) representations in addition to or instead of the original matrices
 \end{itemize}
 
 \section{Conclusion}
 
-We presented Low-Rank GEMM, a high-performance matrix multiplication system that leverages low-rank approximations with hardware acceleration.
- Our implementation achieves up to 325 TFLOPS on matrices up to $20480\times20480$ on NVIDIA RTX 4090, providing 75\% memory savings 
- and $7.2\times$ speedup over PyTorch FP32 for large matrices.
+We presented LowRank GEMM, a high-performance matrix multiplication system that leverages low-rank approximations with hardware acceleration.
+Our implementation achieves up to 325 TFLOPS on matrices up to $20480\times20480$ on NVIDIA RTX 4090, providing 75\% memory savings
+and $7.2\times$ speedup over PyTorch FP32 for large matrices.
 
-The system automatically adapts to hardware capabilities and matrix characteristics, selecting optimal 
-decomposition methods and precision levels. Comprehensive benchmarking demonstrates that LowRank GEMM becomes the fastest
- approach for matrices $N\geq10240$, surpassing traditional cuBLAS implementations through memory bandwidth optimization rather than computational shortcuts.
+The system automatically adapts to hardware capabilities and matrix characteristics, selecting optimal decomposition methods and precision levels.
+Comprehensive benchmarking demonstrates that LowRank GEMM becomes the fastest approach for matrices $N\geq10240$, surpassing traditional
+cuBLAS implementations through memory bandwidth optimization rather than computational shortcuts.
 
-Low-Rank GEMM represents a significant advancement in practical large-scale matrix computation, enabling more efficient 
-training and deployment of modern deep learning models while maintaining sub-1\% approximation accuracy. Our results show that LowRank GEMM is the fastest 
-approach for matrices $N\geq10240$. This advantage arises because, at such large scales, the main performance bottleneck shifts from computation to 
-memory bandwidth: transferring full matrices to and from memory is significantly slower than performing arithmetic operations. 
-LowRank GEMM optimizes for this by minimizing the amount of data moved using compact factorized representations, 
-thereby making better use of available memory bandwidth. In contrast, traditional cuBLAS implementations move and operate 
-on the entire dense matrix, which leads to slower performance for large sizes. Thus, LowRank GEMM's memory bandwidth 
-efficiency—not computational shortcuts—explains its superior performance at scale.
+LowRank GEMM represents a significant advancement in practical large-scale matrix computation, enabling more efficient training and deployment
+of modern deep learning models while maintaining sub-1\% approximation accuracy. At large scales, the performance bottleneck shifts from
+computation to memory bandwidth, where LowRank GEMM's compact factorized representations provide superior efficiency compared to dense
+matrix operations.
 
 \bibliographystyle{plain}
 \bibliography{references}
