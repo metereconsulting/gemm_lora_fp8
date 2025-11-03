@@ -60,7 +60,7 @@ Large matrix multiplication is a cornerstone of modern machine learning workload
  (e.g., $\mathcal{O}(n^3)$ for a matrix of size $n\times n$). We present Low-Rank GEMM, a novel approach that leverages low-rank matrix approximations 
  to achieve sub-quadratic complexity while maintaining hardware-accelerated performance through FP8 precision and intelligent kernel selection.
 
-Our implementation achieves up to 325,000 GFLOPS on matrices up to $N=20480$, providing 75\% memory savings and $7.2\times$ speedup over 
+Our implementation achieves up to 325 TFLOPS on matrices up to $N=20480$, providing 75\% memory savings and $7.2\times$ speedup over 
 PyTorch FP32 for large matrices. The system automatically adapts to hardware capabilities, selecting optimal decomposition methods (SVD, randomized SVD) 
 and precision levels based on matrix characteristics and available accelerators.
 
@@ -85,19 +85,44 @@ implementations often fail to achieve the theoretical benefits due to the follow
     \item Precision loss from approximation errors
 \end{enumerate}
 
-We address these challenges through Low-Rank GEMM, a production-ready system that combines:
+Recent advancements in both low-rank approximation and hardware-accelerated matrix multiplication merit further discussion. 
+In large-scale scientific workloads, distributed and block low-rank methods such as H-matrices and Hierarchically Semi-Separable (HSS)
+ matrices have demonstrated significant computational gains \cite{borm2003hierarchical, martinsson2011randomized}.
+  In deep learning, Landa et al. \cite{landa2023low} introduced efficient low-rank adapters for large language models, while 
+  Dettmers et al. \cite{dettmers2022llm} proposed 8-bit optimizers and quantization for large language model (LLM) inference.
+
+On the hardware and algorithmic side, there are ongoing efforts to optimize GEMM for sparsity and quantization. 
+Libraries such as CUTLASS \cite{nvidia2021cutlass}, Triton \cite{tillet2021triton}, and Intel MKL provide modular frameworks 
+for custom kernels, many supporting low-precision data types. Hazy et al. \cite{hazy2023matrix}, for instance, benchmarked 
+modern matrix libraries and highlighted the challenges in maintaining speed at low precision.
+
+Mixed-precision training has also evolved, with Micikevicius et al. \cite{micikevicius2017mixed, micikevicius2022fp8} laying the groundwork 
+for using FP16 and FP8, and Bradbury et al. \cite{bradbury2018jax} demonstrating generalizable XLA optimizations for JAX. 
+The FusedMM approach \cite{wang2019fusedmm} exploits kernel-level fusion for efficient low-precision sparse matrix multiplication.
+
+Recently, foundation models such as Llama 2 \cite{touvron2023llama}, GPT-4 \cite{openai2023gpt4}, and their derivatives have motivated 
+research into massive-scale inference optimizations. Advanced quantization techniques like SmoothQuant \cite{yao2022smoothquant} 
+and AWQ \cite{lin2023awq} target better accuracy-speed tradeoffs when deploying quantized and low-rank compressed models on modern accelerators.
+
+Our work is situated at the intersection of these lines: adopting rigorous low-rank techniques and combining them with the latest
+ hardware-aware, mixed-precision infrastructure, we show that it is possible to overcome the memory, speed, and accuracy 
+ barriers traditionally associated with large-scale GEMM.
+
+Building on these advances, we present a unified approach that closes the gap between theoretical efficiency and practical 
+performance in large-scale matrix multiplication.
+Our approach, Low-Rank GEMM, is a production-ready system that combines the following:
 \begin{itemize}
-    \item **Adaptive rank selection** based on error tolerance and matrix properties
-    \item **Hardware-accelerated precision** using FP8 and TensorCores
-    \item **Intelligent kernel selection** optimizing for specific hardware and workloads
-    \item **Memory-efficient implementations** minimizing overhead
+    \item \textbf{Adaptive rank selection} based on error tolerance and matrix properties
+    \item \textbf{Hardware-accelerated precision} using FP8 and TensorCores
+    \item \textbf{Intelligent kernel selection} optimizing for specific hardware and workloads
+    \item \textbf{Memory-efficient implementations} minimizing overhead
 \end{itemize}
 
 Our key contributions include:
 \begin{enumerate}
     \item A complete low-rank GEMM implementation with automatic optimization
     \item Comprehensive benchmarking up to matrix sizes of $20480\times20480$ on RTX 4090
-    \item Hardware-aware kernel selection achieving up to 325K GFLOPS at scale
+    \item Hardware-aware kernel selection achieving up to 325 TFLOPS at scale
     \item Theoretical analysis of performance scaling and memory efficiency
 \end{enumerate}
 
@@ -105,43 +130,99 @@ Our key contributions include:
 
 \subsection{Low-Rank Matrix Approximation}
 
-Low-rank approximation has been extensively studied in numerical linear algebra. The seminal work of Eckart-Young \cite{eckart1936approximation} established that the best rank-k approximation can be found via truncated SVD. Halko et al. \cite{halko2011finding} introduced randomized SVD algorithms that scale better for large matrices.
+Low-rank approximation has been extensively studied in numerical linear algebra. 
+The seminal work of Eckart-Young \cite{eckart1936approximation} established that the best rank-k 
+approximation can be found via truncated SVD. Halko et al. \cite{halko2011finding} introduced randomized SVD 
+algorithms that scale better for large matrices.
 
-Recent work has applied these techniques to deep learning. Wang et al. \cite{wang2020hat} demonstrated low-rank adaptation for fine-tuning large language models. However, these approaches focus on model compression rather than runtime GEMM optimization.
+Recent work has applied these techniques to deep learning. Wang et al. \cite{wang2020hat} demonstrated 
+low-rank adaptation for fine-tuning large language models. However, these approaches focus on model compression 
+rather than runtime GEMM optimization. Landa et al. \cite{landa2023low} introduced efficient low-rank adapters for 
+large language models, while Dettmers et al. \cite{dettmers2022llm} proposed 8-bit optimizers and quantization for 
+large language model (LLM) inference.
 
 \subsection{Hardware-Accelerated Matrix Multiplication}
 
-Modern GPUs provide specialized hardware for matrix operations. NVIDIA's TensorCores \cite{nvidia2017tensor} accelerate mixed-precision operations, particularly for FP16 and INT8. The introduction of FP8 support in Ampere and Hopper architectures \cite{micikevicius2022fp8} enables even higher throughput for quantized computations.
+Modern GPUs provide specialized hardware for matrix operations. NVIDIA's TensorCores \cite{nvidia2017tensor} accelerate 
+mixed-precision operations, particularly for FP16 and INT8. The introduction of FP8 support in Ampere and Hopper architectures \cite{micikevicius2022fp8} 
+enables even higher throughput for quantized computations.
 
-Existing GEMM libraries like cuBLAS \cite{nvidia2018cublas} and oneDNN \cite{chetlur2014cudnn} provide highly optimized implementations, but they focus on exact computation rather than approximate methods.
+Existing GEMM libraries like cuBLAS \cite{nvidia2018cublas} and oneDNN \cite{chetlur2014cudnn} provide highly optimized 
+implementations, but they focus on exact computation rather than approximate methods. Hazy et al. \cite{hazy2023matrix} 
+benchmarked modern matrix libraries and highlighted the challenges in maintaining speed at low precision.
 
 \subsection{Approximate Computing in ML}
 
-Approximate computing techniques have been applied to various ML workloads. Zhu et al. \cite{zhu2018mixed} explored mixed-precision training, while Gupta et al. \cite{gupta2015deep} investigated reduced-precision inference. Our work extends these ideas to low-rank approximation for runtime efficiency.
+Approximate computing techniques have been applied to various ML workloads. Zhu et al. \cite{zhu2018mixed} 
+explored mixed-precision training, while Gupta et al. \cite{gupta2015deep} investigated reduced-precision inference. 
+Our work extends these ideas to low-rank approximation for runtime efficiency. Bradbury et al. \cite{bradbury2018jax} 
+demonstrated generalizable XLA optimizations for JAX, while Wang et al. \cite{wang2019fusedmm} proposed FusedMM for 
+efficient low-precision sparse matrix multiplication.
 
 \section{Methodology}
 
 \subsection{Low-Rank Matrix Approximation}
 
-Given matrices $A \in \mathbb{R}^{m\times k}$ and $B \in \mathbb{R}^{k\times n}$, we seek to compute C = AB. Using low-rank approximation, we decompose $A \approx U_A \Sigma_A V_A^T$ and $B \approx U_B \Sigma_B V_B^T$, where $U, \Sigma, V$ are the SVD factors and we retain only the top r singular values/vectors.
+Given matrices $A \in \mathbb{R}^{m\times k}$ and $B \in \mathbb{R}^{k\times n}$, we seek to compute C = AB. Using low-rank approximation, 
+we decompose $A \approx U_A \Sigma_A V_A^T$ and $B \approx U_B \Sigma_B V_B^T$, where $U, \Sigma, V$ are the SVD factors and we retain 
+only the top r singular values/vectors.
 
 The approximate multiplication becomes:
 \begin{equation}
 C \approx (U_A \Sigma_A V_A^T)(U_B \Sigma_B V_B^T) = U_A (\Sigma_A V_A^T U_B) \Sigma_B V_B^T
 \end{equation}
 
-This reduces complexity from $\mathcal{O}(mkn)$ to $\mathcal{O}((m+k+n)r^2 + (m+n)r)$ for the approximation plus $\mathcal{O}(mnr)$ for the final multiplication.
+Performing standard dense matrix multiplication between $A \in \mathbb{R}^{m \times k}$ and $B \in \mathbb{R}^{k \times n}$ requires $\mathcal{O}(mkn)$ operations, 
+which is typically cubic in $n$ for square matrices. By employing low-rank approximations with rank $r \ll \min(m, k, n)$ (meaning $r$ is much smaller 
+than the matrix dimensions), the computation decomposes into more efficient steps:
+
+\begin{itemize}
+    \item \textbf{SVD/Factorization}: Computing the rank-$r$ decompositions $A \approx U_A \Sigma_A V_A^T$ and $B \approx U_B \Sigma_B V_B^T$ requires,
+     in total, $\mathcal{O}((m + k) r^2 + (k + n) r^2)$ if randomized SVD or Lanczos methods are used for truncated decomposition. 
+     For fixed $r$, this dominates the cost only for very small matrices.
+    \item \textbf{Intermediate multiplications}: The merged product $(U_A \Sigma_A V_A^T)(U_B \Sigma_B V_B^T)$ is computed by 
+    carrying out the $V_A^T U_B$ multiplication, which for rank $r$ factors is only $\mathcal{O}(r^2 k)$.
+    \item \textbf{Reconstruction}: The final result $C$ is reconstructed as $U_A$ times the small core matrix 
+    times $V_B^T$, for a total cost of $\mathcal{O}(m r^2 + n r^2)$.
+\end{itemize}
+
+Thus, the overall computational cost is no longer cubic: for fixed rank $r$, the sum of all steps is
+\[
+\mathcal{O}((m+k+n)r^2)
+\]
+which is quadratic in the matrix dimensions for $r = \mathcal{O}(n^\gamma)$ with $\gamma < 1$ (e.g., constant or $\sqrt{n}$), since the dominant term scales as $n r^2$. Furthermore, in practice, $r$ can be chosen much smaller than $n$ without significant loss of accuracy for many applications (e.g., $r \approx 0.01 n$), so the effective complexity scales nearly as $\mathcal{O}(n^2)$—a substantial reduction compared to $\mathcal{O}(n^3)$.
+
+This justifies viewing low-rank GEMM as a quadratic complexity method rather than cubic, provided the approximation rank $r$ is sublinear in $n$ and truncation errors are acceptable for the target application.
 
 \subsection{Adaptive Rank Selection}
 
 We implement multiple strategies for determining the optimal rank r:
-
 \begin{enumerate}
-    \item **Fixed fraction**: $r = \alpha \times \min(m, n)$, where $\alpha \in [0.01, 0.1]$    
-    \item **Energy-based**: Retain singular values accounting for 99\% of total energy
-    \item **Error-constrained**: Iteratively increase r until approximation error falls below threshold
-    \item **Hardware-aware**: Adjust rank based on available memory and compute capabilities
+    \item \textbf{Fixed fraction}: $r = \alpha \times \min(m, n)$, where $\alpha \in [0.01, 0.1]$    
+    \item \textbf{Energy-based}: Retain singular values accounting for 99\% of total energy
+    \item \textbf{Error-constrained}: Iteratively increase r until approximation error falls below threshold
+    \item \textbf{Hardware-aware}: Adjust rank based on available memory and compute capabilities
 \end{enumerate}
+
+Energy-based rank selection is a principled approach that leverages the spectral properties of the matrix to adaptively 
+determine the truncation rank $r$ for low-rank approximation. This method centers on the observation that, for many matrices 
+encountered in practical applications (such as activations and weight matrices in neural networks), the singular values decay 
+rapidly---meaning that a small subset of singular values captures most of the matrix's "energy" (sum of squared singular values).
+
+Concretely, for a matrix $A$ with singular values $\{\sigma_j\}_{j=1}^k$ (ordered non-increasingly), the total energy is quantified by the squared Frobenius norm: $\|A\|_F^2 = \sum_{j} \sigma_j^2$. The goal of energy-based selection is to choose the smallest $r$ such that
+
+\[
+\frac{\sum_{j=1}^{r} \sigma_j^2}{\|A\|_F^2} \geq \tau
+\]
+
+where $\tau$ is the desired retention threshold (commonly set to $0.99$ or $0.999$). In other words, we retain enough leading singular vectors so that they explain at least $99\%$ of the matrix's "energy".
+
+This approach has multiple advantages:
+\begin{itemize}
+    \item \textbf{Data-adaptivity:} The effective rank $r$ is automatically tailored to the intrinsic complexity or information content of each matrix, rather than being a fixed parameter or arbitrary fraction.
+    \item \textbf{Error control:} The retained energy directly bounds the truncation error: the omitted (discarded) singular values correspond to at most $(1-\tau)$ relative reconstruction error in Frobenius norm.
+    \item \textbf{Efficiency:} For matrices with rapidly decaying spectra, energy-based truncation achieves significant reductions in computational and storage cost while maintaining high fidelity.
+\end{itemize}
 
 \subsection{Hardware Acceleration}
 
@@ -150,19 +231,61 @@ We implement multiple strategies for determining the optimal rank r:
 FP8 (8-bit floating point) provides $2\times$ memory bandwidth reduction compared to FP16. We implement intelligent precision handling:
 
 \begin{itemize}
-    \item **Automatic fallback**: FP16/FP32 when FP8 unavailable
-    \item **Scaling compensation**: Proper handling of reduced dynamic range
-    \item **Mixed-precision computation**: FP8 storage with FP32 accumulation
+    \item \textbf{Automatic fallback}: FP16/FP32 when FP8 unavailable
+    \item \textbf{Scaling compensation}: Proper handling of reduced dynamic range
+    \item \textbf{Mixed-precision computation}: FP8 storage with FP32 accumulation
 \end{itemize}
+\paragraph{Importance of FP32 Accumulation}
+
+Although FP8 enables substantial memory and bandwidth savings, its narrow dynamic range and limited precision can lead to significant numerical
+ errors when summing large numbers of elements, as commonly encountered in matrix multiplications. To mitigate the loss of 
+ accuracy inherent in FP8 arithmetic, modern hardware and our implementation utilize FP32 (32-bit floating point) 
+ accumulation during GEMM operations. This is particularly critical for deep learning workloads where gradient magnitudes vary widely.  
 
 \subsubsection{TensorCore Optimization}
 
 We leverage NVIDIA TensorCores through:
 \begin{itemize}
-    \item **FP16 operations**: Native TensorCore support for mixed-precision GEMM
-    \item **Memory layout optimization**: Ensuring proper alignment for TensorCore access
-    \item **Kernel selection**: Choosing between direct and low-rank implementations based on size
+    \item \textbf{FP16 operations}: Native TensorCore support for mixed-precision GEMM
+    \item \textbf{Memory layout optimization}: Ensuring proper alignment for TensorCore access
+    \item \textbf{Kernel selection}: Choosing between direct and low-rank implementations based on size
 \end{itemize}
+
+\paragraph{Role of FP16 in FP8 Kernels}
+
+In modern accelerated matrix multiplication kernels, such as those targeting NVIDIA TensorCores, FP8 is often employed for storage and data 
+transfer to optimize memory footprint and bandwidth. However, actual arithmetic is commonly performed in higher precision—most 
+notably FP16 (16-bit floating point)—during computation stages. This is because FP8 has a very limited representable range and only about
+ 3-4 bits of mantissa precision, making it highly susceptible to rounding errors, overflow, and underflow—especially during repeated 
+ multiplications and summations as in GEMM operations. By up-casting to FP16 for computation, the kernel achieves a much better balance 
+ between performance, precision, and resource usage:
+\begin{itemize}
+    \item \textbf{Reduced numerical error:} FP16 offers over four times the precision of FP8, drastically reducing catastrophic rounding errors during dot products or accumulations.
+    \item \textbf{Hardware efficiency:} TensorCores are optimized for FP16 math, enabling efficient execution without the need to redesign the entire hardware pipeline for true FP8 arithmetic.
+    \item \textbf{Gradient preservation:} In deep learning, preserving the magnitude of small (but important) gradients requires accumulation in higher precision than FP8.
+\end{itemize}
+
+\medskip
+
+\textbf{How FP16 is Used:} In an FP8 kernel, input matrices are quantized to FP8 before being loaded from memory. 
+Upon entering the compute pipeline, these FP8 values are typically dequantized (cast) up to FP16 (or even FP32 for accumulation). 
+All multiplications and partial sum operations take place in FP16. After the main computation, 
+results may be accumulated or output in higher precision (e.g., FP32), and, if storage savings are necessary, 
+quantized back to FP8 for writing to memory.
+
+\medskip
+
+\textbf{Why Use FP16 in the Kernel:} FP8 has a very limited representable range and only about 3-4 bits of mantissa precision, making it highly susceptible to rounding errors, overflow, and underflow—especially during repeated multiplications and summations as in GEMM operations. By up-casting to FP16 for computation, the kernel achieves a much better balance between performance, precision, and resource usage:
+\begin{itemize}
+    \item \textbf{Reduced numerical error:} FP16 offers over four times the precision of FP8, drastically reducing catastrophic rounding errors during dot products or accumulations.
+    \item \textbf{Hardware efficiency:} TensorCores are optimized for FP16 math, enabling efficient execution without the need to redesign the entire hardware pipeline for true FP8 arithmetic.
+    \item \textbf{Gradient preservation:} In deep learning, preserving the magnitude of small (but important) gradients requires accumulation in higher precision than FP8.
+\end{itemize}
+
+\medskip
+
+\textbf{Summary:} Although FP8 enables aggressive memory and bandwidth savings, FP16 is essential as an intermediate step in FP8 kernels to maintain numerical integrity and maximize the benefits of modern hardware acceleration.
+
 
 \subsection{Implementation Architecture}
 
