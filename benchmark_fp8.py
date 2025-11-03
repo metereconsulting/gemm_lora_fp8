@@ -243,7 +243,7 @@ class LowRankGEMMBenchmarkSuite:
             'std_time': np.std(times),
             'min_time': np.min(times),
             'max_time': np.max(times),
-            'throughput': (2 * a.numel() * b.shape[-1]) / np.mean(times),  # GFLOPS approximation
+            'throughput': (2 * a.numel() * b.shape[-1]) / np.mean(times),  # TFLOPS approximation
         }
 
     def verify_fp8_error_bounds(self, reference: torch.Tensor, result: torch.Tensor, method_name: str) -> Dict[str, float]:
@@ -309,7 +309,7 @@ class LowRankGEMMBenchmarkSuite:
                             'method': method_name,
                             'time_ms': perf_results['mean_time'] * 1000,
                             'time_std_ms': perf_results['std_time'] * 1000,
-                            'throughput_gflops': perf_results['throughput'] / 1e9,
+                            'throughput_tflops': perf_results['throughput'] / 1e12,
                             **error_results
                         }
                         results.append(result)
@@ -361,10 +361,10 @@ class LowRankGEMMBenchmarkSuite:
         ax2 = axes[0, 1]
         for method in valid_results['method'].unique():
             method_data = valid_results[valid_results['method'] == method]
-            ax2.plot(method_data['size'], method_data['throughput_gflops'],
+            ax2.plot(method_data['size'], method_data['throughput_tflops'],
                     marker='s', label=method, linewidth=2, markersize=4)
         ax2.set_xlabel('Matrix Size (N)')
-        ax2.set_ylabel('Throughput (GFLOPS)')
+        ax2.set_ylabel('Throughput (TFLOPS)')
         ax2.set_title('Throughput vs Matrix Size')
         ax2.set_xscale('log', base=2)
         ax2.legend()
@@ -445,9 +445,9 @@ class LowRankGEMMBenchmarkSuite:
             method_data = results_df[results_df['method'] == method].dropna(subset=['time_ms'])
             if not method_data.empty:
                 avg_time = method_data['time_ms'].mean()
-                avg_throughput = method_data['throughput_gflops'].mean()
+                avg_throughput = method_data['throughput_tflops'].mean()
                 print(f"  {method:<15s}: {avg_time:6.2f} ms avg, "
-                      f"{avg_throughput:6.1f} GFLOPS avg")
+                      f"{avg_throughput:6.1f} TFLOPS avg")
 
     def run_full_benchmark(self, save_plots: bool = True, verbose: bool = False) -> pd.DataFrame:
         """Run complete benchmark suite."""

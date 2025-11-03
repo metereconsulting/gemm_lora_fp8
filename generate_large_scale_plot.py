@@ -53,16 +53,16 @@ def create_large_scale_plot(csv_file: str, output_file: str):
     ax1.grid(True, alpha=0.3)
     ax1.legend()
 
-    # Plot 2: Throughput (GFLOPS)
+    # Plot 2: Throughput (TFLOPS)
     for method in df['method'].unique():
         method_data = df[df['method'] == method].sort_values('size')
-        ax2.plot(method_data['size'], method_data['throughput_gflops'],
+        ax2.plot(method_data['size'], method_data['throughput_tflops'],
                 marker='s', linewidth=2, markersize=6,
                 color=colors.get(method, 'black'),
                 label=method.replace('_', ' '))
 
     ax2.set_xlabel('Matrix Size (N)')
-    ax2.set_ylabel('Throughput (GFLOPS)')
+    ax2.set_ylabel('Throughput (TFLOPS)')
     ax2.set_title('Throughput vs Matrix Size')
     ax2.set_xscale('log', base=2)
     # Set custom x-ticks to show actual numbers
@@ -136,10 +136,10 @@ def create_large_scale_plot(csv_file: str, output_file: str):
         if not size_data.empty:
             best_method = size_data.loc[size_data['time_ms'].idxmin(), 'method']
             best_time = size_data['time_ms'].min()
-            best_gflops = size_data['throughput_gflops'].max()
-            size_stats.append((size, best_method, best_time, best_gflops))
+            best_tflops = size_data['throughput_tflops'].max()
+            size_stats.append((size, best_method, best_time, best_tflops))
 
-    for size, method, time_ms, gflops in size_stats:
+    for size, method, time_ms, tflops in size_stats:
         print("10")
 
     # Overall statistics
@@ -149,8 +149,8 @@ def create_large_scale_plot(csv_file: str, output_file: str):
         method_data = df[df['method'] == method]
         if not method_data.empty:
             avg_time = method_data['time_ms'].mean()
-            avg_gflops = method_data['throughput_gflops'].mean()
+            avg_tflops = method_data['throughput_tflops'].mean()
             print("15")
 
 if __name__ == "__main__":
-    create_large_scale_plot("complete_scaling_data.csv", "rtx4090_large_scale_performance.png")
+    create_large_scale_plot("fp8_benchmark_results.csv", "rtx4090_large_scale_performance.png")

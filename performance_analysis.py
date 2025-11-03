@@ -40,7 +40,7 @@ def analyze_benchmark_results(csv_file: str = "fp8_max_scale_test.csv"):
         method_data = df[df['method'] == method]
         if not method_data.empty:
             avg_time = method_data['time_ms'].mean()
-            avg_gflops = method_data['throughput_gflops'].mean()
+            avg_tflops = method_data['throughput_tflops'].mean()
             print("20")
 
     # Speedup analysis
@@ -179,14 +179,14 @@ def create_detailed_plots(df: pd.DataFrame, output_prefix: str = "detailed_analy
     ax1.legend()
     ax1.grid(True, alpha=0.3)
 
-    # 2. GFLOPS comparison
+    # 2. TFLOPS comparison
     ax2 = axes[0, 1]
     for method in methods:
         method_data = valid_df[valid_df['method'] == method]
-        ax2.plot(method_data['size'], method_data['throughput_gflops'], marker='s', label=method, linewidth=2)
+        ax2.plot(method_data['size'], method_data['throughput_tflops'], marker='s', label=method, linewidth=2)
 
     ax2.set_xlabel('Matrix Size (N)')
-    ax2.set_ylabel('Throughput (GFLOPS)')
+    ax2.set_ylabel('Throughput (TFLOPS)')
     ax2.set_title('Computational Throughput')
     ax2.set_xscale('log', base=2)
     ax2.legend()
@@ -240,18 +240,18 @@ def create_detailed_plots(df: pd.DataFrame, output_prefix: str = "detailed_analy
     ax4.legend()
     ax4.grid(True, alpha=0.3)
 
-    # 5. Efficiency analysis (GFLOPS per GB memory)
+    # 5. Efficiency analysis (TFLOPS per GB memory)
     ax5 = axes[1, 1]
     for method in methods:
         method_data = valid_df[valid_df['method'] == method]
-        # Estimate GFLOPS per GB (rough approximation)
+        # Estimate TFLOPS per GB (rough approximation)
         memory_gb = method_data['size'].apply(lambda x: (x**2 * 4 * 3) / 1e9 if 'LowRank' not in method
                                              else (x * int(np.sqrt(x)) * 2 * 4) / 1e9)
-        efficiency = method_data['throughput_gflops'] / memory_gb
+        efficiency = method_data['throughput_tflops'] / memory_gb
         ax5.plot(method_data['size'], efficiency, marker='d', label=method, linewidth=2)
 
     ax5.set_xlabel('Matrix Size (N)')
-    ax5.set_ylabel('GFLOPS/GB Memory')
+    ax5.set_ylabel('TFLOPS/GB Memory')
     ax5.set_title('Memory Efficiency')
     ax5.set_xscale('log', base=2)
     ax5.legend()
@@ -263,9 +263,9 @@ def create_detailed_plots(df: pd.DataFrame, output_prefix: str = "detailed_analy
         method_data = valid_df[valid_df['method'] == method]
         # Calculate how performance scales with problem size
         baseline_size = method_data['size'].min()
-        baseline_perf = method_data[method_data['size'] == baseline_size]['throughput_gflops'].iloc[0]
+        baseline_perf = method_data[method_data['size'] == baseline_size]['throughput_tflops'].iloc[0]
 
-        scaling_efficiency = method_data['throughput_gflops'] / (method_data['size'] / baseline_size)
+        scaling_efficiency = method_data['throughput_tflops'] / (method_data['size'] / baseline_size)
         ax6.plot(method_data['size'], scaling_efficiency, marker='*', label=method, linewidth=2)
 
     ax6.set_xlabel('Matrix Size (N)')

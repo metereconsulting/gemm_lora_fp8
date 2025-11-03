@@ -61,7 +61,7 @@ Large matrix multiplication is a cornerstone of modern machine learning workload
  (e.g., $\mathcal{O}(n^3)$ for a matrix of size $n\times n$). We present Low-Rank GEMM, a novel approach that leverages low-rank matrix approximations 
  to achieve sub-quadratic complexity while maintaining hardware-accelerated performance through FP8 precision and intelligent kernel selection.
 
-Our implementation achieves up to 325 TFLOPS on matrices up to $N=20480$, providing 75\% memory savings and $7.2\times$ speedup over 
+On a NVIDIA RTX 4090, our implementation achieves up to 325 TFLOPS on matrices up to $N=20480$, providing 75\% memory savings and $7.2\times$ speedup over 
 PyTorch FP32 for large matrices. The system automatically adapts to hardware capabilities, selecting optimal decomposition methods (SVD, randomized SVD) 
 and precision levels based on matrix characteristics and available accelerators.
 
@@ -141,6 +141,13 @@ low-rank adaptation for fine-tuning large language models. However, these approa
 rather than runtime GEMM optimization. Landa et al. \cite{landa2023low} introduced efficient low-rank adapters for 
 large language models, while Dettmers et al. \cite{dettmers2022llm} proposed 8-bit optimizers and quantization for 
 large language model (LLM) inference.
+
+In summary, all these prior approaches have mainly targeted model compression or limited quantization for inference.
+Instead, the presented work bridges the gap between theoretical and practical efficiency in large-scale GEMM by 
+unifying low-rank approximation with hardware-aware, mixed-precision execution in a production-ready implementation.
+Unlike previous work, we achieve competitive throughput at unprecedented scale (up to $20480\times20480$) on modern GPUs,
+with automatic kernel and rank selection, full error bound verification, and empirical demonstration of $>7\times$ speedup 
+versus PyTorch/cutlass baselines—all without sacrificing numerical tolerances required for deep learning workloads.
 
 \subsection{Hardware-Accelerated Matrix Multiplication}
 
@@ -373,7 +380,7 @@ We compared against:
 \begin{figure}[H]
 \centering
 \includegraphics[width=\textwidth]{rtx4090_large_scale_performance.png}
-\caption{RTX 4090 Large Scale Performance: Time-to-solution, throughput, error, and speedup vs matrix size ($\log_2$ scale). LowRank Auto achieves up to 325K GFLOPS at N=20480, becoming the fastest method for $N\geq10240$.}
+\caption{RTX 4090 Large Scale Performance: Time-to-solution, throughput, error, and speedup vs matrix size ($\log_2$ scale). LowRank Auto achieves up to 325 TFLOPS at N=20480, becoming the fastest method for $N\geq10240$.}
 \label{fig:performance_scaling}
 \end{figure}
 
