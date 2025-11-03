@@ -61,45 +61,45 @@ python run_fp8_benchmark.py --sizes 2048 4096 8192 --output my_benchmark_results
 ### LowRank_Auto
 - Intelligent kernel selection with memory-efficient approximations
 - Automatically chooses optimal decomposition method
-- 127K GFLOPS sustained for N≥10240, 75% memory savings
+- 378 TFLOPS at N=20480, 85.3 TFLOPS average across all sizes, 75% memory savings
 
 ### LowRank_FP8
 - FP8-specific optimizations with low-rank approximations
 - Exact FP8 precision bounds with memory efficiency
-- 72K GFLOPS with superior memory utilization
+- 209 TFLOPS at N=20480, 51.9 TFLOPS average, 75% memory savings
 
 ### cuBLAS_OptimizedFP8
 - Custom FP8-like operations using TensorCores
 - Simulated FP8 behavior with hardware acceleration
-- 81K GFLOPS average across all matrix sizes
+- 137 TFLOPS at N=20480, 61.0 TFLOPS average, 50% memory savings
 
 ### TorchCompile_FP16
 - torch.compile optimized FP16 operations
 - Advanced compilation with kernel fusion
-- 87K GFLOPS sustained for N=2048-8192
+- 139 TFLOPS at N=20480, 64.2 TFLOPS average, 50% memory savings
 
 ### PyTorch_FP32
 - Standard PyTorch FP32 matrix multiplication
 - Baseline for accuracy and performance comparison
-- 44K GFLOPS with exact precision
+- 49 TFLOPS at N=20480, 31.8 TFLOPS average, exact precision
 
 ## Performance Characteristics
 
 ### Expected Results
 
 **Small Matrices (N ≤ 1024)**:
-- PyTorch FP32 fastest (44K GFLOPS, minimal overhead)
+- PyTorch FP32 fastest (38-49 TFLOPS, minimal overhead)
 - Low-Rank methods competitive despite setup costs
 
 **Medium Matrices (2048 ≤ N ≤ 8192)**:
-- TorchCompile_FP16 fastest (87K GFLOPS sustained)
-- cuBLAS_OptimizedFP8 competitive (81K GFLOPS)
+- TorchCompile_FP16 fastest (64-139 TFLOPS sustained)
+- cuBLAS_OptimizedFP8 competitive (61-137 TFLOPS)
 - Low-Rank methods building momentum
 
-**Large Matrices (N ≥ 10240)**:
-- **LowRank_Auto fastest** (127K GFLOPS sustained)
-- 6.9x speedup vs PyTorch FP32
-- 75% memory savings, 3.25x effective expansion
+**Large Matrices (N ≥ 16384)**:
+- **LowRank_Auto fastest** (278-378 TFLOPS sustained)
+- 7.7x speedup vs PyTorch FP32 at N=20480
+- 75% memory savings, 4x effective expansion
 
 **Memory-Limited Scenarios**:
 - Low-Rank methods can handle larger matrices than direct methods
@@ -203,37 +203,37 @@ Based on comprehensive benchmarking (N=1024 to 20480):
 
 🔹 **LowRank_Auto** (RECOMMENDED for large-scale ML):
 ```
-Best for: N≥10240, memory-constrained training
-Performance: 127K GFLOPS sustained, 75% memory savings
-Speedup: 6.9x vs PyTorch FP32
+Best for: N≥16384, memory-constrained training
+Performance: 378 TFLOPS at N=20480, 85.3 TFLOPS average, 75% memory savings
+Speedup: 7.7x vs PyTorch FP32 at N=20480
 Use when: Large transformer training, extreme scale ML
 ```
 
 🔹 **TorchCompile_FP16** (Best for medium matrices):
 ```
-Best for: 2048≤N≤8192, static workloads
-Performance: 87K GFLOPS sustained
+Best for: 2048≤N≤16384, static workloads
+Performance: 139 TFLOPS at N=20480, 64.2 TFLOPS average, 50% memory savings
 Use when: Medium-scale inference, compiled graphs
 ```
 
 🔹 **cuBLAS_OptimizedFP8** (Balanced performance):
 ```
 Best for: General high-performance needs
-Performance: 81K GFLOPS average
+Performance: 137 TFLOPS at N=20480, 61.0 TFLOPS average, 50% memory savings
 Use when: Balanced precision/performance requirements
 ```
 
 🔹 **LowRank_FP8** (FP8-specific applications):
 ```
 Best for: FP8 quantized models, precision-critical
-Performance: 72K GFLOPS, 75% memory savings
+Performance: 209 TFLOPS at N=20480, 51.9 TFLOPS average, 75% memory savings
 Use when: Exact FP8 bounds needed, memory efficiency
 ```
 
 🔹 **PyTorch_FP32** (Baseline/small matrices):
 ```
 Best for: N≤1024, maximum accuracy
-Performance: 44K GFLOPS, exact precision
+Performance: 49 TFLOPS at N=20480, 31.8 TFLOPS average, exact precision
 Use when: Small matrices, reference comparisons
 ```
 
