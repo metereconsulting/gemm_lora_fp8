@@ -33,8 +33,8 @@ The module now supports FP8 precision for memory efficiency and torch.compile fo
 Install from source:
 
 ```bash
-git clone https://github.com/your-repo/low-rank-gemm.git
-cd low-rank-gemm
+git clone https://github.com/metereconsulting/gemm_lora_fp8.git
+cd gemm_lora_fp8
 pip install -e .
 ```
 
